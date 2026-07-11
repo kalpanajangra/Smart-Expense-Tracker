@@ -1,4 +1,5 @@
-from typing import List
+from typing import List,Optional
+from datetime import date
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
@@ -34,6 +35,29 @@ def create_expense(expense: ExpenseCreate, db: Session = Depends(get_db)):
 
 # GET API
 @router.get("/", response_model=List[ExpenseResponse])
-def get_expenses(db: Session = Depends(get_db)):
-    expenses = db.query(Expense).all()
-    return expenses  
+def get_expenses(category: Optional[str] = None,
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    min_amount: Optional[float] = None,
+    max_amount: Optional[float] = None,
+    db: Session = Depends(get_db)
+    ):
+
+    query = db.query(Expense)
+    if category:
+        query = query.filter(Expense.category == category)
+
+    if start_date:
+        query = query.filter(Expense.date >= start_date)
+
+    if end_date:
+        query = query.filter(Expense.date <= end_date)
+
+    if min_amount:
+        query = query.filter(Expense.amount >= min_amount)
+
+    if max_amount:
+        query = query.filter(Expense.amount <= max_amount)
+
+    
+    return query.all()
