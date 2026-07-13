@@ -8,6 +8,8 @@ from app.database.database import SessionLocal
 from app.models.expense import Expense
 from app.schemas.expense import ExpenseCreate, ExpenseResponse
 
+from app.utils.security import get_current_user
+
 router = APIRouter(prefix="/expenses", tags=["Expenses"])
 
 # Database dependency
@@ -21,7 +23,10 @@ def get_db():
 
 # POST API
 @router.post("/", response_model=ExpenseResponse)
-def create_expense(expense: ExpenseCreate, db: Session = Depends(get_db)):
+def create_expense(expense: ExpenseCreate,
+            current_user=Depends(get_current_user), 
+            db: Session = Depends(get_db)
+            ):
     new_expense = Expense(
         title=expense.title,
         amount=expense.amount,
@@ -40,6 +45,8 @@ def get_expenses(category: Optional[str] = None,
     end_date: Optional[date] = None,
     min_amount: Optional[float] = None,
     max_amount: Optional[float] = None,
+    current_user=Depends(get_current_user),
+
     db: Session = Depends(get_db)
     ):
 
