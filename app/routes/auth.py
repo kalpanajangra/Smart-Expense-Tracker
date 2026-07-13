@@ -3,12 +3,13 @@ from sqlalchemy.orm import Session
 
 from app.database.database import SessionLocal
 from app.models.user import User
-from app.schemas.user import UserCreate
+from app.schemas.user import UserCreate , UserResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from app.utils.security import (
     hash_password,
     verify_password,
     create_access_token,
+    get_current_user
 )
 
 router = APIRouter()
@@ -68,3 +69,17 @@ def login( form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depen
         "access_token": access_token,
         "token_type": "bearer"
     }
+
+@router.get("/me", response_model=UserResponse)
+def get_me(
+    current_user: str = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    print(current_user)
+    user = db.query(User).filter(
+        User.email == current_user
+    ).first()
+
+    print(user)
+
+    return user
