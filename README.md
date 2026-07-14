@@ -183,24 +183,6 @@ http://127.0.0.1:8000/redoc
 
 ---
 
-# 📸 Screenshots
-
-## Swagger UI
-
-> Add screenshot here
-
-```
-images/swagger.png
-```
-
-Example:
-
-```markdown
-![Swagger](images/swagger.png)
-```
-
----
-
 ## PostgreSQL Database
 
 > Add pgAdmin screenshot here
