@@ -183,16 +183,6 @@ http://127.0.0.1:8000/redoc
 
 ---
 
-## PostgreSQL Database
-
-> Add pgAdmin screenshot here
-
-```markdown
-![Database](images/database.png)
-```
-
----
-
 # 🧪 Testing
 
 Test all endpoints using Swagger UI.
