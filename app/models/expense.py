@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, Float
+from sqlalchemy import Column, Integer, String, Float, Date
 from app.database.database import Base
+
 
 class Expense(Base):
     __tablename__ = "expenses"
@@ -8,3 +9,4 @@ class Expense(Base):
     title = Column(String, nullable=False)
     amount = Column(Float, nullable=False)
     category = Column(String, nullable=False)
+    date = Column(Date)

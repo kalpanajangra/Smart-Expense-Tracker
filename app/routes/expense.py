@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.database.database import SessionLocal
 from app.models.expense import Expense
-from app.schemas.expense import ExpenseCreate, ExpenseResponse
+from app.schemas.expense import ExpenseCreate, ExpenseResponse,ExpenseAPIResponse
 
 from app.utils.security import get_current_user
 
@@ -30,7 +30,7 @@ def get_db():
 
 
 # POST API
-@router.post("/", response_model=ExpenseResponse)
+@router.post("/",status_code=201, response_model=ExpenseAPIResponse)
 def create_expense(expense: ExpenseCreate,
             current_user=Depends(get_current_user), 
             db: Session = Depends(get_db)
@@ -60,7 +60,7 @@ def get_expenses(category: Optional[str] = None,
     )
 
 #GET by id
-@router.get("/{expense_id}", response_model=ExpenseResponse)
+@router.get("/{expense_id}", response_model=ExpenseAPIResponse)
 def read_expense(
     expense_id: int,
     current_user=Depends(get_current_user),
@@ -70,7 +70,7 @@ def read_expense(
 
 
 #Update
-@router.put("/{expense_id}", response_model=ExpenseResponse)
+@router.put("/{expense_id}", response_model=ExpenseAPIResponse)
 def edit_expense(
     expense_id: int,
     expense: ExpenseCreate,
@@ -80,7 +80,7 @@ def edit_expense(
     return update_expense(db, expense_id, expense)
 
 #Delete
-@router.delete("/{expense_id}")
+@router.delete("/{expense_id}",status_code=200)
 def remove_expense(
     expense_id: int,
     current_user=Depends(get_current_user),

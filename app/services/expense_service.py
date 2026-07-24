@@ -13,14 +13,26 @@ def create_expense(db: Session, expense: ExpenseCreate):
         title=expense.title,
         amount=expense.amount,
         category=expense.category,
+        date=expense.date
     )
+    try:
+        db.add(new_expense)
+        db.commit()
+        db.refresh(new_expense)
 
-    db.add(new_expense)
-    db.commit()
-    db.refresh(new_expense)
+        return {
+            "success": True,
+            "message": "Expense Created",
+            "data": new_expense
+        }
+    except Exception as e:
 
-    return new_expense
+        db.rollback()
 
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
 
 # Get All + Filters
 def get_expenses(
@@ -58,7 +70,15 @@ def get_expense_by_id(db: Session, expense_id: int):
     if not expense:
         raise HTTPException(status_code=404, detail="Expense not found")
 
-    return expense
+    return {
+    
+        "success": True,
+    
+        "message": "Expenses Retrieved",
+    
+        "data": expense
+    
+    }
 
 
 # Update
@@ -68,15 +88,33 @@ def update_expense(db: Session, expense_id: int, expense_data: ExpenseCreate):
     if not expense:
         raise HTTPException(status_code=404, detail="Expense not found")
 
-    expense.title = expense_data.title
-    expense.amount = expense_data.amount
-    expense.category = expense_data.category
+    try:
+        expense.title = expense_data.title
+        expense.amount = expense_data.amount
+        expense.category = expense_data.category
+        expense.date = expense_data.date
 
-    db.commit()
-    db.refresh(expense)
+        db.commit()
+        db.refresh(expense)
 
-    return expense
+        return {
 
+            "success": True,
+
+            "message": "Expense Updated",
+
+            "data": expense
+
+        }
+    
+    except Exception:
+
+        db.rollback()
+
+        raise HTTPException(
+            status_code=500,
+            detail="Database Error"
+        )
 
 # Delete
 def delete_expense(db: Session, expense_id: int):
@@ -85,7 +123,23 @@ def delete_expense(db: Session, expense_id: int):
     if not expense:
         raise HTTPException(status_code=404, detail="Expense not found")
 
-    db.delete(expense)
-    db.commit()
+    try:
+    
+        db.delete(expense)
+        db.commit()
 
-    return {"message": "Expense deleted successfully"}
+        return {
+                "success": True,
+                "message": "Expense deleted successfully"
+                }
+
+    except Exception:
+
+        db.rollback()
+
+        raise HTTPException(
+            status_code=500,
+            detail="Database Error"
+        )
+
+    
