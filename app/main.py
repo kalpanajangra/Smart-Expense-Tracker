@@ -5,6 +5,7 @@ from app.models.user import User
 from app.routes.expense import router as expense_router
 from fastapi import HTTPException
 from app.exceptions import http_exception_handler
+from app.routes import analytics
 
 Base.metadata.create_all(bind=engine)
 
@@ -14,6 +15,7 @@ app = FastAPI(
 )
 app.include_router(router)
 app.include_router(expense_router)
+app.include_router(analytics.router)
 Base.metadata.create_all(bind=engine)
 
 @app.get("/")
@@ -26,3 +28,4 @@ app.add_exception_handler(
     HTTPException,
     http_exception_handler
 )
+
