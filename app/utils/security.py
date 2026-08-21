@@ -5,6 +5,7 @@ from jose import JWTError,jwt
 from datetime import datetime, timedelta
 
 from fastapi.security import OAuth2PasswordBearer
+import os
 
 
 pwd_context = CryptContext(
@@ -23,9 +24,15 @@ def verify_password(plain_password, hashed_password):
         hashed_password
     )
 
-SECRET_KEY = "your_secret_key"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+SECRET_KEY = os.getenv("SECRET_KEY")
+
+if not SECRET_KEY:
+    raise RuntimeError("SECRET_KEY environment variable is not set")
+
+ALGORITHM = os.getenv("ALGORITHM", "HS256")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(
+    os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30")
+)
 
 def create_access_token(data):
     to_encode = data.copy()

@@ -35,7 +35,7 @@ def create_expense(expense: ExpenseCreate,
             current_user=Depends(get_current_user), 
             db: Session = Depends(get_db)
             ):
-        return create_expense_service(db, expense)
+        return create_expense_service(db, expense,current_user)
 
 
 # GET API
@@ -52,6 +52,7 @@ def get_expenses(category: Optional[str] = None,
 
     return get_expenses_service(
         db=db,
+        current_user=current_user,
         category=category,
         start_date=start_date,
         end_date=end_date,
@@ -66,7 +67,7 @@ def read_expense(
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    return get_expense_by_id(db, expense_id)
+    return get_expense_by_id(db, expense_id,current_user)
 
 
 #Update
@@ -77,7 +78,7 @@ def edit_expense(
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    return update_expense(db, expense_id, expense)
+    return update_expense(db, expense_id, expense,current_user)
 
 #Delete
 @router.delete("/{expense_id}",status_code=200)
@@ -86,4 +87,4 @@ def remove_expense(
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    return delete_expense(db, expense_id)
+    return delete_expense(db, expense_id,current_user)

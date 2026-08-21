@@ -2,18 +2,68 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 
 from app.models.expense import Expense
+from app.models.user import User
 
-def get_dashboard_summary(db: Session):
+from fastapi import HTTPException
 
-    total_expenses = db.query(func.count(Expense.id)).scalar()
 
-    total_amount = db.query(func.sum(Expense.amount)).scalar() or 0
+def get_user_id(db: Session, current_user: str):
 
-    average_expense = db.query(func.avg(Expense.amount)).scalar() or 0
+    user = (
+        db.query(User)
+        .filter(User.email == current_user)
+        .first()
+    )
 
-    highest_expense = db.query(func.max(Expense.amount)).scalar() or 0
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
 
-    lowest_expense = db.query(func.min(Expense.amount)).scalar() or 0
+    return user.id
+
+
+def get_dashboard_summary(
+    db: Session,
+    current_user: str
+):
+
+    user_id = get_user_id(db, current_user)
+
+    total_expenses = (
+        db.query(func.count(Expense.id))
+        .filter(Expense.user_id == user_id)
+        .scalar()
+    )
+
+    total_amount = (
+        db.query(func.sum(Expense.amount))
+        .filter(Expense.user_id == user_id)
+        .scalar()
+        or 0
+    )
+
+    average_expense = (
+        db.query(func.avg(Expense.amount))
+        .filter(Expense.user_id == user_id)
+        .scalar()
+        or 0
+    )
+
+    highest_expense = (
+        db.query(func.max(Expense.amount))
+        .filter(Expense.user_id == user_id)
+        .scalar()
+        or 0
+    )
+
+    lowest_expense = (
+        db.query(func.min(Expense.amount))
+        .filter(Expense.user_id == user_id)
+        .scalar()
+        or 0
+    )
 
     return {
         "total_expenses": total_expenses,
@@ -23,13 +73,20 @@ def get_dashboard_summary(db: Session):
         "lowest_expense": lowest_expense
     }
 
-def get_category_summary(db: Session):
+
+def get_category_summary(
+    db: Session,
+    current_user: str
+):
+
+    user_id = get_user_id(db, current_user)
 
     result = (
         db.query(
             Expense.category,
             func.sum(Expense.amount).label("total")
         )
+        .filter(Expense.user_id == user_id)
         .group_by(Expense.category)
         .all()
     )
@@ -42,34 +99,73 @@ def get_category_summary(db: Session):
         for row in result
     ]
 
-def get_monthly_summary(db: Session):
+
+def get_monthly_summary(
+    db: Session,
+    current_user: str
+):
+
+    user_id = get_user_id(db, current_user)
 
     result = (
         db.query(
-            func.extract("month", Expense.date).label("month"),
-            func.sum(Expense.amount).label("total")
+            func.extract(
+                "year",
+                Expense.date
+            ).label("year"),
+
+            func.extract(
+                "month",
+                Expense.date
+            ).label("month"),
+
+            func.sum(
+                Expense.amount
+            ).label("total")
         )
-        .group_by(func.extract("month", Expense.date))
+        .filter(Expense.user_id == user_id)
+        .group_by(
+            func.extract("year", Expense.date),
+            func.extract("month", Expense.date)
+        )
+        .order_by(
+            func.extract("year", Expense.date),
+            func.extract("month", Expense.date)
+        )
         .all()
     )
 
     return [
         {
+            "year": int(row.year),
             "month": int(row.month),
             "total": row.total
         }
         for row in result
     ]
 
-def get_top_categories(db: Session):
+
+def get_top_categories(
+    db: Session,
+    current_user: str
+):
+
+    user_id = get_user_id(db, current_user)
 
     result = (
         db.query(
             Expense.category,
-            func.sum(Expense.amount).label("total")
+            func.sum(
+                Expense.amount
+            ).label("total")
         )
+        .filter(Expense.user_id == user_id)
         .group_by(Expense.category)
-        .order_by(func.sum(Expense.amount).desc())
+        .order_by(
+            func.sum(
+                Expense.amount
+            ).desc()
+        )
         .limit(5)
         .all()
     )
@@ -81,4 +177,3 @@ def get_top_categories(db: Session):
         }
         for row in result
     ]
-

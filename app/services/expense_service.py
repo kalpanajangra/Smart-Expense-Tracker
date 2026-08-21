@@ -1,19 +1,39 @@
 from datetime import date
 from typing import Optional
+
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
 from app.models.expense import Expense
+from app.models.user import User
 from app.schemas.expense import ExpenseCreate
+
+def get_user_id(db: Session, current_user: str):
+
+    user = (
+        db.query(User)
+        .filter(User.email == current_user)
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    return user.id
 
 
 # Create
-def create_expense(db: Session, expense: ExpenseCreate):
+def create_expense(db: Session, expense: ExpenseCreate,current_user: str):
+    user_id = get_user_id(db, current_user)
     new_expense = Expense(
         title=expense.title,
         amount=expense.amount,
         category=expense.category,
-        date=expense.date
+        date=expense.date,
+        user_id=user_id
     )
     try:
         db.add(new_expense)
@@ -37,13 +57,17 @@ def create_expense(db: Session, expense: ExpenseCreate):
 # Get All + Filters
 def get_expenses(
     db: Session,
+    current_user: str,
     category: Optional[str] = None,
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
     min_amount: Optional[float] = None,
     max_amount: Optional[float] = None,
 ):
-    query = db.query(Expense)
+    user_id = get_user_id(db, current_user)
+    query = db.query(Expense).filter(
+        Expense.user_id == user_id
+    )
 
     if category:
         query = query.filter(Expense.category == category)
@@ -64,8 +88,17 @@ def get_expenses(
 
 
 # Get By ID
-def get_expense_by_id(db: Session, expense_id: int):
-    expense = db.query(Expense).filter(Expense.id == expense_id).first()
+def get_expense_by_id(db: Session, expense_id: int,current_user: str):
+    user_id = get_user_id(db, current_user)
+
+    expense = (
+        db.query(Expense)
+        .filter(
+            Expense.id == expense_id,
+            Expense.user_id == user_id
+        )
+        .first()
+    )
 
     if not expense:
         raise HTTPException(status_code=404, detail="Expense not found")
@@ -82,8 +115,17 @@ def get_expense_by_id(db: Session, expense_id: int):
 
 
 # Update
-def update_expense(db: Session, expense_id: int, expense_data: ExpenseCreate):
-    expense = db.query(Expense).filter(Expense.id == expense_id).first()
+def update_expense(db: Session, expense_id: int, expense_data: ExpenseCreate, current_user:str):
+    user_id = get_user_id(db, current_user)
+
+    expense = (
+        db.query(Expense)
+        .filter(
+            Expense.id == expense_id,
+            Expense.user_id == user_id
+        )
+        .first()
+    )
 
     if not expense:
         raise HTTPException(status_code=404, detail="Expense not found")
@@ -117,8 +159,17 @@ def update_expense(db: Session, expense_id: int, expense_data: ExpenseCreate):
         )
 
 # Delete
-def delete_expense(db: Session, expense_id: int):
-    expense = db.query(Expense).filter(Expense.id == expense_id).first()
+def delete_expense(db: Session, expense_id: int, current_user: str):
+    user_id = get_user_id(db, current_user)
+
+    expense = (
+        db.query(Expense)
+        .filter(
+            Expense.id == expense_id,
+            Expense.user_id == user_id
+        )
+        .first()
+    )
 
     if not expense:
         raise HTTPException(status_code=404, detail="Expense not found")

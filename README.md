@@ -71,6 +71,10 @@ Smart-Expense-Tracker/
 │   │
 │   └── main.py
 │
+├── .env
+├── .dockerignore
+├── Dockerfile
+├── docker-compose.yml
 ├── requirements.txt
 ├── README.md
 └── .gitignore
@@ -133,6 +137,143 @@ http://127.0.0.1:8000
 ```
 
 ---
+
+## 🐳 Docker Setup
+
+The Smart Expense Tracker is containerized using Docker Compose with separate containers for the FastAPI application and PostgreSQL database.
+
+### Prerequisites
+
+* Docker Desktop
+* Docker Compose
+
+### Environment Configuration
+
+Create a `.env` file in the project root:
+
+```env
+DATABASE_URL=postgresql://postgres:postgres@db:5432/smart_expense_tracker
+SECRET_KEY=YOUR_GENERATED_SECRET_KEY
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=smart_expense_tracker
+```
+
+The `.env` file is excluded from Git using `.gitignore`.
+
+### Run the Project
+
+Build the Docker image and start the application:
+
+```bash
+docker compose up -d --build
+```
+
+Check the running containers:
+
+```bash
+docker compose ps
+```
+
+The expected containers are:
+
+```text
+smart-expense-api
+smart-expense-db
+```
+
+Open Swagger UI:
+
+```text
+http://localhost:8000/docs
+```
+
+### Verify PostgreSQL
+
+Connect to the PostgreSQL container:
+
+```bash
+docker compose exec db psql -U postgres -d smart_expense_tracker
+```
+
+Check the database tables:
+
+```sql
+\dt
+```
+
+Exit PostgreSQL:
+
+```sql
+\q
+```
+
+### View Logs
+
+Check FastAPI logs:
+
+```bash
+docker compose logs web
+```
+
+Check PostgreSQL logs:
+
+```bash
+docker compose logs db
+```
+
+### Stop and Restart
+
+Stop the containers:
+
+```bash
+docker compose down
+```
+
+Restart the application:
+
+```bash
+docker compose up -d
+```
+
+If application code or dependencies change, rebuild:
+
+```bash
+docker compose up -d --build
+```
+
+### Production Docker Image
+
+Build the production Docker image:
+
+```bash
+docker build -t smart-expense-tracker:latest .
+```
+
+Verify the image:
+
+```bash
+docker images
+```
+
+### Docker Architecture
+
+```text
+                    Smart Expense Tracker
+                            │
+                     Docker Compose
+                            │
+              ┌─────────────┴─────────────┐
+              │                           │
+       FastAPI Container           PostgreSQL Container
+       smart-expense-api           smart-expense-db
+              │                           │
+          Port 8000                    Port 5432
+              │                           │
+       REST API / Swagger          Application Database
+```
 
 # 📖 API Documentation
 
@@ -223,7 +364,6 @@ Bearer YOUR_ACCESS_TOKEN
 - Export to Excel
 - Export to PDF
 - Email notifications
-- Docker support
 - Unit testing
 
 ---

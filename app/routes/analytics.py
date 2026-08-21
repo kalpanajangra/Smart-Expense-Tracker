@@ -16,34 +16,67 @@ from app.schemas.analytics import (
     MonthlySummary
 )
 
+from app.utils.security import get_current_user
+
 from typing import List
+
 
 router = APIRouter(
     prefix="/analytics",
     tags=["Analytics"]
 )
 
+
 @router.get(
     "/dashboard",
     response_model=DashboardResponse
 )
-def dashboard(db: Session = Depends(get_db)):
-    return get_dashboard_summary(db)
+def dashboard(
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    return get_dashboard_summary(
+        db,
+        current_user
+    )
+
 
 @router.get(
     "/category",
     response_model=List[CategorySummary]
 )
-def category_summary(db: Session = Depends(get_db)):
-    return get_category_summary(db)
+def category_summary(
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    return get_category_summary(
+        db,
+        current_user
+    )
+
 
 @router.get(
     "/monthly",
     response_model=List[MonthlySummary]
 )
-def monthly_summary(db: Session = Depends(get_db)):
-    return get_monthly_summary(db)
+def monthly_summary(
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    return get_monthly_summary(
+        db,
+        current_user
+    )
 
-@router.get("/top-categories")
-def top_categories(db: Session = Depends(get_db)):
-    return get_top_categories(db)
+
+@router.get(
+    "/top-categories"
+)
+def top_categories(
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    return get_top_categories(
+        db,
+        current_user
+    )

@@ -15,5 +15,6 @@ class CategorySummary(BaseModel):
 
 
 class MonthlySummary(BaseModel):
+    year: int
     month: int
     total: float
